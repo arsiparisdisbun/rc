@@ -253,7 +253,104 @@ class SuratKeluarController extends Controller
         abort_if(
             ! $user->lihatSemuaUnit() && $arsip->unit_pengolah !== $user->unit_pengolah,
             403,
-            'Anda tidak memiliki akses ke arsip unit lain.'
+            'Anda tidak memiliki akses ke arsip unit lain.'           
         );
     }
+        public function cetak(Request $request)
+    {
+        $user = auth()->user();
+
+        $arsip = Arsip::with(['klasifikasi', 'unit', 'jenisNaskah'])
+            ->where('jenis', 'keluar')
+            ->when(! $user->lihatSemuaUnit(), fn ($q) => $q->where('unit_pengolah', $user->unit_pengolah))
+            ->when($request->filled('q'), function ($query) use ($request) {
+                $q = $request->q;
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('nomor_surat', 'like', "%{$q}%")
+                        ->orWhere('isi_ringkas', 'like', "%{$q}%")
+                        ->orWhere('kepada', 'like', "%{$q}%")
+                        ->orWhere('pembuat', 'like', "%{$q}%")
+                        ->orWhere('kode_klasifikasi', 'like', "%{$q}%");
+                });
+            })
+            ->when($request->filled('unit'), fn ($q) => $q->where('unit_pengolah', $request->unit))
+            ->when($request->filled('tahun') && $request->tahun !== 'semua',
+                   fn ($q) => $q->where('tahun', $request->tahun))
+            ->when($request->filled('bulan'), fn ($q) => $q->whereMonth('tanggal_surat', $request->bulan))
+            ->when($request->filled('jenis_naskah'), fn ($q) => $q->where('jenis_naskah_id', $request->jenis_naskah))
+            ->when($request->input('dok') === 'ada', fn ($q) => $q->whereNotNull('dokumen_path'))
+            ->when($request->input('dok') === 'kosong', fn ($q) => $q->whereNull('dokumen_path'))
+            ->orderBy('unit_pengolah')->orderBy('tahun')->orderBy('no_urut')
+            ->get();
+
+        $namaBulan = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+
+        $unitKode = $arsip->pluck('unit_pengolah')->unique();
+
+        $namaUnit = $unitKode->count() === 1
+            ? optional($arsip->first()->unit)->label
+            : 'Semua Unit Pengolah';
+
+        $periode = collect([
+            $request->filled('bulan') ? ($namaBulan[(int) $request->bulan] ?? null) : null,
+            $request->filled('tahun') && $request->tahun !== 'semua' ? 'Tahun ' . $request->tahun : null,
+        ])->filter()->join(' ');
+
+        return view('surat_keluar.cetak', compact('arsip', 'periode', 'namaUnit'));
+    }
+        use \App\Traits\EksporExcel;
+
+    public function eksporExcel(Request $request)
+    {
+        $user = auth()->user();
+
+        $arsip = Arsip::with(['klasifikasi', 'unit', 'jenisNaskah'])
+            ->where('jenis', 'keluar')
+            ->when(! $user->lihatSemuaUnit(), fn ($q) => $q->where('unit_pengolah', $user->unit_pengolah))
+            ->when($request->filled('q'), function ($query) use ($request) {
+                $q = $request->q;
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('nomor_surat', 'like', "%{$q}%")
+                        ->orWhere('isi_ringkas', 'like', "%{$q}%")
+                        ->orWhere('kepada', 'like', "%{$q}%")
+                        ->orWhere('pembuat', 'like', "%{$q}%")
+                        ->orWhere('kode_klasifikasi', 'like', "%{$q}%");
+                });
+            })
+            ->when($request->filled('unit'), fn ($q) => $q->where('unit_pengolah', $request->unit))
+            ->when($request->filled('tahun') && $request->tahun !== 'semua',
+                   fn ($q) => $q->where('tahun', $request->tahun))
+            ->when($request->filled('bulan'), fn ($q) => $q->whereMonth('tanggal_surat', $request->bulan))
+            ->when($request->filled('jenis_naskah'), fn ($q) => $q->where('jenis_naskah_id', $request->jenis_naskah))
+            ->when($request->input('dok') === 'ada', fn ($q) => $q->whereNotNull('dokumen_path'))
+            ->when($request->input('dok') === 'kosong', fn ($q) => $q->whereNull('dokumen_path'))
+            ->orderBy('unit_pengolah')->orderBy('tahun')->orderBy('no_urut')
+            ->get();
+
+        $kolom = ['No Agenda', 'Tahun', 'Kode Unit', 'Nama Unit', 'Jenis Naskah', 'Sifat',
+                  'Tgl Verifikasi', 'Nomor Surat', 'Kode TNDE', 'Kode Klasifikasi',
+                  'Uraian Klasifikasi', 'Tgl Surat', 'Jumlah Lembar', 'Isi Ringkas',
+                  'Kepada', 'Tingkat Perkembangan', 'Pembuat', 'Status Retensi', 'Ada Dokumen'];
+
+        $baris = $arsip->map(fn ($a) => [
+            $a->no_urut, $a->tahun, $a->unit_pengolah, $a->unit?->nama,
+            $a->jenisNaskah?->nama, $a->sifat,
+            $a->tanggal_verifikasi?->format('d-m-Y'),
+            $a->nomor_surat, $a->kode_tnde, $a->kode_klasifikasi, $a->klasifikasi?->uraian,
+            $a->tanggal_surat?->format('d-m-Y'), $a->jumlah_lembar, $a->isi_ringkas,
+            $a->kepada, $a->tingkat_perkembangan, $a->pembuat,
+            $a->status_retensi, $a->dokumen_path ? 'Ya' : 'Tidak',
+        ]);
+
+        return $this->unduhExcel(
+            'Surat Keluar', $kolom, $baris,
+            'Surat_Keluar_' . now()->format('Y-m-d_His') . '.xlsx',
+            ['K' => 35, 'N' => 45]
+        );
+    }
+
 }

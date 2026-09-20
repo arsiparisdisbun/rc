@@ -4,9 +4,13 @@
 @section('isi')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">Daftar Berkas</h4>
-        <a href="{{ route('berkas.create') }}" class="btn btn-primary btn-sm">+ Buat Berkas</a>
-        <a href="{{ route('berkas.cetak-daftar', request()->query()) }}" target="_blank"
-           class="btn btn-outline-secondary btn-sm">Cetak Daftar Berkas</a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('berkas.cetak-daftar', request()->query()) }}" target="_blank"
+               class="btn btn-outline-secondary btn-sm">Cetak Daftar Berkas</a>
+            <a href="{{ route('berkas.ekspor-daftar-excel', request()->query()) }}"
+               class="btn btn-outline-secondary btn-sm">Ekspor Excel</a>
+            <a href="{{ route('berkas.create') }}" class="btn btn-primary btn-sm">+ Buat Berkas</a>
+        </div>
     </div>
 
     <form method="GET" class="row g-2 mb-3">
@@ -46,7 +50,13 @@
         </div>
     </form>
 
-    <p class="text-muted small mb-2">Menampilkan {{ number_format($berkas->total()) }} berkas.</p>
+    <p class="text-muted small mb-2">
+        Menampilkan {{ number_format($berkas->total()) }} berkas.
+        @if(request('penyimpanan'))
+            — status penyimpanan: <strong>{{ request('penyimpanan') }}</strong>
+            <a href="{{ route('berkas.index') }}" class="ms-1">Reset filter</a>
+        @endif
+    </p>
 
     <div class="card shadow-sm">
         <div class="table-responsive">

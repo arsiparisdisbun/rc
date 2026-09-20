@@ -208,25 +208,31 @@ class ImportSuratMasukController extends Controller
                 continue;
             }
 
-            // Ambil angka dari nama file. Pola "2026_1091" → tahun + TNDE, "1091" → TNDE saja
             $dasar = pathinfo($namaAsli, PATHINFO_FILENAME);
-            preg_match_all('/\d+/', $dasar, $cocok);
-            $angka = $cocok[0] ?? [];
-
-            if (empty($angka)) {
-                $stat['tak_cocok']++;
-                $catatan[] = "{$namaAsli}: tidak ada angka pada nama berkas.";
-                continue;
-            }
-
             $tahun = null;
             $tnde  = null;
 
-            if (count($angka) >= 2 && strlen($angka[0]) === 4 && (int) $angka[0] > 2000) {
-                $tahun = (int) $angka[0];
-                $tnde  = $angka[1];
+            // Pola bawaan TNDE: kode tetap + tahun + No TNDE, mis. "11320261238-1"
+            if (preg_match('/^\d+(20\d{2})(\d{3,5})-\d+$/', $dasar, $m)) {
+                $tahun = (int) $m[1];
+                $tnde  = ltrim($m[2], '0') ?: '0';
             } else {
-                $tnde = $angka[0];
+                // Pola lama: "2026_1091" atau "1091" polos
+                preg_match_all('/\d+/', $dasar, $cocok);
+                $angka = $cocok[0] ?? [];
+
+                if (empty($angka)) {
+                    $stat['tak_cocok']++;
+                    $catatan[] = "{$namaAsli}: tidak ada angka pada nama berkas.";
+                    continue;
+                }
+
+                if (count($angka) >= 2 && strlen($angka[0]) === 4 && (int) $angka[0] > 2000) {
+                    $tahun = (int) $angka[0];
+                    $tnde  = $angka[1];
+                } else {
+                    $tnde = $angka[0];
+                }
             }
 
             $query = Arsip::where('jenis', 'masuk')->where('no_tnde', $tnde);

@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\DicatatJejak;
 use Illuminate\Database\Eloquent\Model;
 
 class Berkas extends Model
 {
+    use DicatatJejak;
     protected $table = 'berkas';
 
     protected $fillable = [
@@ -15,13 +17,15 @@ class Berkas extends Model
         'jumlah_fisik', 'satuan', 'skkad',
         'boks_id', 'lokasi_simpan',
         'status', 'diajukan_pada', 'diverifikasi_pada', 'diverifikasi_oleh',
-        'catatan_verifikasi', 'dipindahkan_pada', 'keterangan',
+        'catatan_verifikasi', 'dipindahkan_pada', 'keterangan','pemindahan_id',
+        'penyusutan_id', 'disusutkan_pada',
     ];
 
     protected $casts = [
         'diajukan_pada'     => 'datetime',
         'diverifikasi_pada' => 'datetime',
         'dipindahkan_pada'  => 'date',
+        'disusutkan_pada' => 'date',
     ];
 
     public const SUB_BAGIAN = ['Umum dan Kepegawaian', 'Sungram', 'Keuangan'];
@@ -103,6 +107,10 @@ class Berkas extends Model
 
     public function getStatusPenyimpananAttribute(): string
     {
+        if ($this->sudahDisusutkan()) {
+            return $this->penyusutan?->musnah() ? 'Dimusnahkan' : 'Diserahkan';
+        }
+
         if (! $this->klasifikasi || ! $this->awal_retensi) return 'Tidak diketahui';
 
         $tahunIni = now()->year;
@@ -142,5 +150,20 @@ class Berkas extends Model
             'terverifikasi' => 'Terverifikasi',
             default         => $this->status,
         };
+    }
+
+        public function pemindahan()
+    {
+        return $this->belongsTo(Pemindahan::class, 'pemindahan_id');
+    }
+
+        public function penyusutan()
+    {
+        return $this->belongsTo(Penyusutan::class, 'penyusutan_id');
+    }
+
+    public function sudahDisusutkan(): bool
+    {
+        return ! is_null($this->penyusutan_id);
     }
 }

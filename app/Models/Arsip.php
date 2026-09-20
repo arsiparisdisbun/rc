@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\DicatatJejak;
 use Illuminate\Database\Eloquent\Model;
 
 class Arsip extends Model
 {
+    use DicatatJejak;
     protected $table = 'arsip';
 
         protected $fillable = [

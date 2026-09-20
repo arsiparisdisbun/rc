@@ -10,11 +10,13 @@ use Illuminate\Support\Facades\DB;
 
 class BerkasController extends Controller
 {
+    use \App\Traits\EksporExcel;
+
     public function index(Request $request)
     {
         $user = auth()->user();
 
-        $berkas = Berkas::with(['unit', 'klasifikasi', 'boks'])
+        $query = Berkas::with(['unit', 'klasifikasi', 'boks'])
             ->withCount('item')
             ->when(! $user->lihatSemuaUnit(), fn ($q) => $q->where('unit_pengolah', $user->unit_pengolah))
             ->when($request->filled('unit'), fn ($q) => $q->where('unit_pengolah', $request->unit))
@@ -25,8 +27,28 @@ class BerkasController extends Controller
                 $q->where(fn ($s) => $s->where('uraian', 'like', "%{$cari}%")
                                        ->orWhere('kode_klasifikasi', 'like', "%{$cari}%"));
             })
-            ->orderByDesc('tahun')->orderByDesc('no_berkas')
-            ->paginate(25)->withQueryString();
+            ->orderByDesc('tahun')->orderByDesc('no_berkas');
+
+        // Status penyimpanan dihitung dari JRA, bukan kolom database,
+        // jadi disaring setelah data diambil, lalu dipaginasi secara manual.
+        if ($request->filled('penyimpanan')) {
+            $semua = $query->get()->filter(
+                fn ($b) => $b->status_penyimpanan === $request->penyimpanan
+            )->values();
+
+            $halaman = (int) $request->input('page', 1);
+            $perHalaman = 25;
+
+            $berkas = new \Illuminate\Pagination\LengthAwarePaginator(
+                $semua->forPage($halaman, $perHalaman),
+                $semua->count(),
+                $perHalaman,
+                $halaman,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            $berkas = $query->paginate(25)->withQueryString();
+        }
 
         return view('berkas.index', [
             'berkas'      => $berkas,
@@ -121,7 +143,7 @@ class BerkasController extends Controller
         return redirect()->route('berkas.index')->with('success', "Berkas {$label} telah dihapus.");
     }
 
-    // ---------- Cetak ----------
+    // ---------- Cetak PDF ----------
 
     // Daftar Berkas mengikuti filter yang sedang aktif di halaman daftar
     public function cetakDaftar(Request $request)
@@ -134,10 +156,9 @@ class BerkasController extends Controller
             ->when($request->filled('unit'), fn ($q) => $q->where('unit_pengolah', $request->unit))
             ->when($request->filled('tahun'), fn ($q) => $q->where('tahun', $request->tahun))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
-            ->orderBy('unit_pengolah')->orderBy('tahun')->orderBy('no_berkas')
+            ->orderBy('kode_klasifikasi')->orderBy('unit_pengolah')->orderBy('tahun')->orderBy('no_berkas')
             ->get();
 
-        // Nama unit untuk kepala dokumen; bila lintas unit, tulis gabungan
         $unitKode = $berkas->pluck('unit_pengolah')->unique();
 
         $namaUnit = $unitKode->count() === 1
@@ -154,7 +175,72 @@ class BerkasController extends Controller
 
         $berka->load(['unit', 'klasifikasi', 'boks', 'item.arsip', 'item.klasifikasi']);
 
+        // Item tanpa kode ditempatkan di baris paling akhir
+        $terurut = $berka->item->sortBy(fn ($it) => $it->kode ?? 'zzz-tanpa-kode')->values();
+        $berka->setRelation('item', $terurut);
+
         return view('berkas.cetak_isi', ['berkas' => $berka]);
+    }
+
+    // ---------- Ekspor Excel ----------
+
+    public function eksporDaftarExcel(Request $request)
+    {
+        $user = auth()->user();
+
+        $berkas = Berkas::with(['unit', 'klasifikasi', 'boks'])
+            ->withCount('item')
+            ->when(! $user->lihatSemuaUnit(), fn ($q) => $q->where('unit_pengolah', $user->unit_pengolah))
+            ->when($request->filled('unit'), fn ($q) => $q->where('unit_pengolah', $request->unit))
+            ->when($request->filled('tahun'), fn ($q) => $q->where('tahun', $request->tahun))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
+            ->orderBy('kode_klasifikasi')->orderBy('unit_pengolah')->orderBy('tahun')->orderBy('no_berkas')
+            ->get();
+
+        $kolom = ['No Urut', 'Kode Unit', 'Nama Unit', 'No Berkas', 'Kode Klasifikasi',
+                  'Uraian Berkas', 'Kurun Waktu', 'Jumlah', 'Satuan', 'SKKAD',
+                  'Lokasi Simpan', 'Retensi Aktif (th)', 'Retensi Inaktif (th)',
+                  'Status Akhir', 'Status Penyimpanan', 'Keterangan'];
+
+        $baris = $berkas->values()->map(fn ($b, $i) => [
+            $i + 1, $b->unit_pengolah, $b->unit?->nama, $b->label,
+            $b->kode_klasifikasi ?: '-', $b->uraian, $b->kurun_waktu,
+            $b->jumlah_fisik ?: $b->item_count, $b->satuan, $b->skkad,
+            trim(($b->boks?->label ?? '') . ' ' . ($b->lokasi_simpan ?? '')),
+            $b->klasifikasi?->retensi_aktif, $b->klasifikasi?->retensi_inaktif,
+            $b->klasifikasi?->nasib_akhir, $b->status_penyimpanan, $b->keterangan,
+        ]);
+
+        return $this->unduhExcel(
+            'Daftar Berkas', $kolom, $baris,
+            'Daftar_Berkas_' . now()->format('Y-m-d_His') . '.xlsx',
+            ['F' => 40, 'P' => 35]
+        );
+    }
+
+    public function eksporIsiExcel(Berkas $berka)
+    {
+        $this->pastikanBolehLihat($berka);
+
+        $berka->load(['unit', 'klasifikasi', 'boks', 'item.arsip', 'item.klasifikasi']);
+
+        $terurut = $berka->item->sortBy(fn ($it) => $it->kode ?? 'zzz-tanpa-kode')->values();
+
+        $kolom = ['No Urut', 'Kode Unit', 'Nama Unit', 'No Berkas', 'No Item',
+                  'Nomor Surat/Dokumen', 'Kode Klasifikasi', 'Uraian Informasi Arsip',
+                  'Tanggal', 'Jumlah', 'Satuan', 'SKKAD', 'Sumber', 'Keterangan'];
+
+        $baris = $terurut->values()->map(fn ($it, $i) => [
+            $i + 1, $berka->unit_pengolah, $berka->unit?->nama, $berka->label, $it->nomor_item,
+            $it->nomor ?: '-', $it->kode ?: '-', $it->isi,
+            $it->tanggal_tampil, $it->jumlah, $it->satuan, $it->skkad, $it->sumber, $it->keterangan,
+        ]);
+
+        return $this->unduhExcel(
+            'Daftar Isi Berkas', $kolom, $baris,
+            "Daftar_Isi_Berkas_{$berka->label}_" . now()->format('Y-m-d_His') . '.xlsx',
+            ['H' => 45]
+        );
     }
 
     // ---------- Alur verifikasi ----------

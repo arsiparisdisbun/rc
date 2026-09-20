@@ -1,29 +1,18 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Surat Masuk - siarsip</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container my-5" style="max-width: 900px;">
+@extends('layouts.app')
+@section('judul', 'Edit Surat Masuk - siarsip')
+
+@push('gaya')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+@endpush
+
+@section('isi')
+<div class="mx-auto" style="max-width: 900px;">
     <div class="card shadow-sm">
         <div class="card-header bg-warning">
-            <h4 class="mb-0">Edit Surat Masuk — No Urut {{ $arsip->no_urut }} / {{ $arsip->tahun }}</h4>
+            <h5 class="mb-0">Edit Surat Masuk — No Urut {{ $arsip->no_urut }} / {{ $arsip->tahun }}</h5>
         </div>
         <div class="card-body">
-
-            @if($errors->any())
-                <div class="alert alert-danger">
-                    <strong>Periksa kembali isian berikut:</strong>
-                    <ul class="mb-0 mt-2">
-                        @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-                    </ul>
-                </div>
-            @endif
 
             <form action="{{ route('surat-masuk.update', $arsip) }}" method="POST" enctype="multipart/form-data">
                 @csrf
@@ -106,23 +95,35 @@
                         @endforeach
                     </select>
                 </div>
-                
-                
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Kode Klasifikasi </label>
-                    <select name="kode_klasifikasi" class="form-select cari-klasifikasi">
-                        @php $kodeTerpilih = old('kode_klasifikasi', $arsip->kode_klasifikasi); @endphp
-                        <option value="{{ $kodeTerpilih }}" selected>
-                            {{ $kodeTerpilih }} — {{ $arsip->klasifikasi?->uraian }}
-                        </option>
-                    </select>
+
+                                <div class="mb-3">
+                    <label class="form-label fw-bold">Kode Klasifikasi</label>
+                    <div class="d-flex gap-2 align-items-start">
+                        <select name="kode_klasifikasi" class="form-select cari-klasifikasi" id="kode-klasifikasi-field">
+                            @php $kodeTerpilih = old('kode_klasifikasi', $arsip->kode_klasifikasi); @endphp
+                            @if($kodeTerpilih)
+                                <option value="{{ $kodeTerpilih }}" selected>
+                                    {{ $kodeTerpilih }} — {{ $arsip->klasifikasi?->uraian }}
+                                </option>
+                            @endif
+                        </select>
+                        @if($arsip->dokumen_path)
+                            <button type="button" class="btn btn-outline-primary btn-sm text-nowrap" id="btn-saran-klasifikasi"
+                                    data-url="{{ route('arsip.saran-klasifikasi', $arsip) }}">
+                                Minta Saran
+                            </button>
+                        @endif
+                    </div>
+                    <small class="text-muted">Boleh dikosongkan bila belum diklasifikasi.</small>
+                    <div id="hasil-saran-klasifikasi" class="mt-2"></div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label fw-bold">Tingkat Perkembangan</label>
                         <select name="tingkat_perkembangan" class="form-select">
-                            @foreach(['Asli','Copy','Salinan','Tembusan'] as $t)
+                            <option value="">— Belum ditentukan —</option>
+                            @foreach(['Asli','Salinan'] as $t)
                                 <option value="{{ $t }}" @selected(old('tingkat_perkembangan', $arsip->tingkat_perkembangan) === $t)>{{ $t }}</option>
                             @endforeach
                         </select>
@@ -154,21 +155,82 @@
         </div>
     </div>
 </div>
+@endsection
 
+@push('skrip')
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(function () {
     $('.cari-klasifikasi').select2({
         theme: 'bootstrap-5', width: '100%', minimumInputLength: 2,
+        placeholder: 'Ketik kode atau uraian...',
         ajax: {
             url: '{{ route('klasifikasi.cari') }}', dataType: 'json', delay: 250,
             data: params => ({ q: params.term }),
             processResults: data => ({ results: data }), cache: true
         }
     });
+        $('#btn-saran-klasifikasi').on('click', function () {
+        const $tombol = $(this);
+        const $hasil = $('#hasil-saran-klasifikasi');
+
+        $tombol.prop('disabled', true).text('Membaca dokumen...');
+        $hasil.html('');
+
+        $.get($tombol.data('url'))
+            .done(function (r) {
+                let html = '<div class="card card-body bg-light border py-2 px-3 small">';
+
+                if (r.kode_pasti) {
+                    html += `<div class="mb-2"><strong>Kode dari nomor surat:</strong><br>
+                        <button type="button" class="btn btn-sm btn-success mt-1 btn-pilih-kode"
+                                data-kode="${r.kode_pasti.kode}" data-uraian="${r.kode_pasti.uraian}">
+                            ${r.kode_pasti.kode} — ${r.kode_pasti.uraian}
+                        </button></div>`;
+                } else if (r.pilihan_acuan && r.pilihan_acuan.length > 1) {
+                    html += '<div class="mb-2"><strong>Nomor surat menunjuk ke salah satu:</strong><br>';
+                    r.pilihan_acuan.forEach(p => {
+                        html += `<button type="button" class="btn btn-sm btn-outline-success mt-1 me-1 btn-pilih-kode"
+                                    data-kode="${p.kode}" data-uraian="${p.uraian}">
+                            ${p.kode} — ${p.uraian}
+                        </button>`;
+                    });
+                    html += '</div>';
+                }
+
+                if (r.kandidat && r.kandidat.length) {
+                    html += '<div><strong>Kandidat dari isi surat</strong> <small class="text-muted">(diurutkan dari paling cocok)</small><div class="mt-1">';
+                    r.kandidat.forEach((k, i) => {
+                        const label = i === 0 ? 'Paling disarankan' : `Alternatif ${i + 1}`;
+                        const gaya  = i === 0 ? 'btn-primary' : 'btn-outline-secondary';
+                        const uraianSingkat = k.uraian.length > 60 ? k.uraian.substring(0, 60) + '…' : k.uraian;
+                        html += `<button type="button" class="btn btn-sm ${gaya} mb-1 d-block w-100 text-start btn-pilih-kode"
+                                    data-kode="${k.kode}" data-uraian="${k.uraian.replace(/"/g, '&quot;')}">
+                            <span class="badge bg-light text-dark me-1">${label}</span>
+                            <strong>${k.kode}</strong> — ${uraianSingkat}
+                        </button>`;
+                    });
+                    html += '</div></div>';
+                }
+
+                html += '<div class="text-muted mt-2" style="font-size:.75rem;">Ini usulan dari pencocokan kata, bukan keputusan pasti — periksa dulu sebelum dipilih.</div>';
+                html += '</div>';
+
+                $hasil.html(html);
+            })
+            .fail(function (x) {
+                $hasil.html('<div class="text-danger small">' + (x.responseJSON?.error || 'Gagal mengambil saran.') + '</div>');
+            })
+            .always(function () {
+                $tombol.prop('disabled', false).text('Minta Saran');
+            });
+    });
+
+    $(document).on('click', '.btn-pilih-kode', function () {
+        const opsi = new Option(`${$(this).data('kode')} — ${$(this).data('uraian')}`, $(this).data('kode'), true, true);
+        $('#kode-klasifikasi-field').empty().append(opsi).trigger('change');
+    });
 });
 </script>
-</body>
-</html>
+@endpush

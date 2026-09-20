@@ -44,6 +44,8 @@
         @endif
         <a href="{{ route('berkas.cetak-isi', $berkas) }}" target="_blank"
            class="btn btn-outline-secondary btn-sm">Cetak Daftar Isi</a>
+        <a href="{{ route('berkas.ekspor-isi-excel', $berkas) }}"
+           class="btn btn-outline-secondary btn-sm">Ekspor Excel</a>
     </div>
 </div>
 
@@ -256,4 +258,7 @@
         </table>
     </div>
 </div>
+@if(auth()->user()->lihatSemuaUnit())
+    @include('jejak._riwayat', ['objek' => $berkas, 'batas' => 15])
+@endif
 @endsection

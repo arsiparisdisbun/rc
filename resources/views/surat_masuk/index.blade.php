@@ -1,38 +1,24 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buku Agenda Surat Masuk - siarsip</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .tabel-agenda th, .tabel-agenda td { border: 1px solid #dee2e6; vertical-align: middle; }
-        .tabel-agenda thead th { text-align: center; vertical-align: middle; }
-        .pagination svg { width: 1rem; height: 1rem; }
-    </style>
-</head>
-<body class="bg-light">
-<div class="container-fluid px-4 my-4">
+@extends('layouts.app')
+@section('judul', 'Buku Agenda Surat Masuk - siarsip')
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+@push('gaya')
+<style>
+    .tabel-agenda th, .tabel-agenda td { border: 1px solid #dee2e6; vertical-align: middle; }
+    .tabel-agenda thead th { text-align: center; vertical-align: middle; }
+</style>
+@endpush
 
-    @if($errors->any())
-        <div class="alert alert-danger">
-            @foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach
-        </div>
-    @endif
-
+@section('isi')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">Buku Agenda Surat Masuk</h4>
         <div class="d-flex gap-2">
-             <a href="{{ route('surat-keluar.index') }}" class="btn btn-outline-secondary btn-sm">Surat Keluar</a>    
             <a href="{{ route('surat-masuk.import') }}" class="btn btn-outline-primary btn-sm">Import Excel</a>
             <a href="{{ route('surat-masuk.create') }}" class="btn btn-primary btn-sm">+ Input Surat Masuk</a>
             <a href="{{ route('surat-masuk.import-dokumen') }}" class="btn btn-outline-primary btn-sm">Unggah Dokumen</a>
             <a href="{{ route('surat-masuk.pengodean') }}" class="btn btn-outline-success btn-sm">Pengodean</a>
-            
+            <a href="{{ route('surat-masuk.cetak', request()->query()) }}" target="_blank" class="btn btn-outline-secondary btn-sm">Cetak</a>
+            <a href="{{ route('surat-masuk.ekspor-excel', request()->query()) }}" class="btn btn-outline-secondary btn-sm">Ekspor Excel</a>
+
         </div>
     </div>
 
@@ -78,9 +64,8 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-md-2 d-flex gap-2">
+        <div class="col-md-1 d-flex gap-2">
             <button class="btn btn-secondary flex-grow-1">Cari</button>
-            <a href="{{ route('surat-masuk.index') }}" class="btn btn-outline-secondary">Reset</a>
         </div>
     </form>
 
@@ -89,6 +74,7 @@
         (acuan: {{ $acuan === 'surat' ? 'tanggal surat' : 'tanggal terima' }})
         @if($tahunAktif !== 'semua')— tahun {{ $tahunAktif }}@endif
         @if($bulanAktif), bulan {{ $namaBulan[(int) $bulanAktif] ?? '' }}@endif
+        <a href="{{ route('surat-masuk.index') }}" class="ms-2">Reset filter</a>
     </p>
 
     <div class="card shadow-sm">
@@ -185,11 +171,11 @@
     </div>
 
     <div class="mt-3">{{ $arsip->links() }}</div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@endsection
+
+@push('skrip')
 <script>
     document.querySelectorAll('[data-bs-toggle="tooltip"]')
             .forEach(el => new bootstrap.Tooltip(el));
 </script>
-</body>
-</html>
+@endpush

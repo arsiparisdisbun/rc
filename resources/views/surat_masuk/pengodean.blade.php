@@ -1,25 +1,20 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pengodean Arsip - siarsip</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
-    <style>
-        .tabel-kode th, .tabel-kode td { border: 1px solid #dee2e6; vertical-align: middle; }
-        .tabel-kode thead th { text-align: center; }
-        .baris-selesai { background-color: #d1e7dd !important; }
-        .pagination svg { width: 1rem; height: 1rem; }
-    </style>
-</head>
-<body class="bg-light">
-<div class="container-fluid px-4 my-4">
+@extends('layouts.app')
+@section('judul', 'Pengodean Arsip - siarsip')
 
+@push('gaya')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+<style>
+    .tabel-kode th, .tabel-kode td { border: 1px solid #dee2e6; vertical-align: middle; }
+    .tabel-kode thead th { text-align: center; }
+    .baris-selesai { background-color: #d1e7dd !important; }
+</style>
+@endpush
+
+@section('isi')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">Pengodean Klasifikasi Arsip</h4>
-        <a href="{{ route('surat-masuk.index') }}" class="btn btn-outline-secondary">Kembali ke Buku Agenda</a>
+        <a href="{{ route('surat-masuk.index') }}" class="btn btn-outline-secondary btn-sm">Kembali ke Buku Agenda</a>
     </div>
 
     <div class="card shadow-sm mb-3">
@@ -68,7 +63,15 @@
                         <td>{{ $a->isi_ringkas }}</td>
                         <td>{{ $a->dari }}</td>
                         <td>
-                            <select class="form-select form-select-sm pilih-kode" data-id="{{ $a->id }}"></select>
+                            <div class="d-flex gap-1">
+                                <select class="form-select form-select-sm pilih-kode" data-id="{{ $a->id }}"></select>
+                                @if($a->dokumen_path)
+                                    <button type="button" class="btn btn-sm btn-outline-primary btn-saran-baris"
+                                            data-arsip-id="{{ $a->id }}"
+                                            data-url="{{ route('arsip.saran-klasifikasi', $a) }}"
+                                            title="Minta saran dari isi PDF">💡</button>
+                                @endif
+                            </div>
                         </td>
                         <td class="text-center">
                             <span class="hasil text-muted small">—</span>
@@ -85,10 +88,10 @@
     </div>
 
     <div class="mt-3">{{ $arsip->links() }}</div>
-</div>
+@endsection
 
+@push('skrip')
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(function () {
@@ -107,9 +110,7 @@ $(function () {
         }
     });
 
-    $('.pilih-kode').on('select2:select', function (e) {
-        const id   = $(this).data('id');
-        const kode = e.params.data.id;
+    function simpanKode(id, kode) {
         const $baris = $('#baris-' + id);
         const $hasil = $baris.find('.hasil');
 
@@ -130,8 +131,46 @@ $(function () {
                 $hasil.removeClass('text-muted').addClass('text-danger').text(pesan);
             }
         });
+    }
+
+    $('.pilih-kode').on('select2:select', function (e) {
+        simpanKode($(this).data('id'), e.params.data.id);
+    });
+
+    $(document).on('click', '.btn-saran-baris', function () {
+        const $tombol = $(this);
+        const id = $tombol.data('arsip-id');
+        const $select = $(`.pilih-kode[data-id="${id}"]`);
+
+        $tombol.prop('disabled', true).html('...');
+
+        $.get($tombol.data('url'))
+            .done(function (r) {
+                let kode = null, uraian = null;
+
+                if (r.kode_pasti) {
+                    kode = r.kode_pasti.kode; uraian = r.kode_pasti.uraian;
+                } else if (r.kandidat && r.kandidat.length) {
+                    kode = r.kandidat[0].kode; uraian = r.kandidat[0].uraian;
+                } else if (r.pilihan_acuan && r.pilihan_acuan.length) {
+                    kode = r.pilihan_acuan[0].kode; uraian = r.pilihan_acuan[0].uraian;
+                }
+
+                if (kode) {
+                    const opsi = new Option(`${kode} — ${uraian}`, kode, true, true);
+                    $select.empty().append(opsi).trigger('change');
+                    simpanKode(id, kode);
+                } else {
+                    alert('Tidak ditemukan saran yang cocok untuk surat ini.');
+                }
+            })
+            .fail(function (x) {
+                alert(x.responseJSON?.error || 'Gagal mengambil saran.');
+            })
+            .always(function () {
+                $tombol.prop('disabled', false).html('💡');
+            });
     });
 });
 </script>
-</body>
-</html>
+@endpush

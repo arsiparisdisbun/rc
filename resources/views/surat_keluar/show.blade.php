@@ -1,23 +1,21 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detail Surat Keluar {{ $arsip->no_urut }}/{{ $arsip->tahun }} - siarsip</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .tabel-detail th { width: 230px; background: #f8f9fa; font-weight: 600; }
-        .tabel-detail th, .tabel-detail td { border: 1px solid #dee2e6; padding: .6rem .75rem; }
-    </style>
-</head>
-<body class="bg-light">
-<div class="container my-4" style="max-width: 950px;">
+@extends('layouts.app')
+@section('judul', "Detail Surat Keluar {$arsip->no_urut}/{$arsip->tahun} - siarsip")
+
+@push('gaya')
+<style>
+    .tabel-detail th { width: 230px; background: #f8f9fa; font-weight: 600; }
+    .tabel-detail th, .tabel-detail td { border: 1px solid #dee2e6; padding: .6rem .75rem; }
+</style>
+@endpush
+
+@section('isi')
+<div class="mx-auto" style="max-width: 950px;">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">Detail Surat Keluar</h4>
         <div class="d-flex gap-2">
-            <a href="{{ route('surat-keluar.index') }}" class="btn btn-outline-secondary">Kembali</a>
-            <a href="{{ route('surat-keluar.edit', $arsip) }}" class="btn btn-warning">Edit</a>
+            <a href="{{ route('surat-keluar.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+            <a href="{{ route('surat-keluar.edit', $arsip) }}" class="btn btn-warning btn-sm">Edit</a>
         </div>
     </div>
 
@@ -102,6 +100,9 @@
             @endif
         </div>
     </div>
+
+    @if(auth()->user()->lihatSemuaUnit())
+        @include('jejak._riwayat', ['objek' => $arsip, 'batas' => 15])
+    @endif
 </div>
-</body>
-</html>
+@endsection

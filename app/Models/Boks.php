@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\DicatatJejak;
 use Illuminate\Database\Eloquent\Model;
 
 class Boks extends Model
 {
+     use DicatatJejak;
     protected $table = 'boks';
 
     protected $fillable = ['unit_pengolah', 'jenis', 'nomor', 'lokasi', 'keterangan', 'terpakai'];

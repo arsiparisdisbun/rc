@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\DicatatJejak;
 use Illuminate\Database\Eloquent\Model;
 
 class ItemBerkas extends Model
 {
+    use DicatatJejak;
     protected $table = 'item_berkas';
 
     protected $fillable = [

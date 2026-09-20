@@ -1,34 +1,23 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Import Surat Masuk - siarsip</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container my-5" style="max-width: 800px;">
+@extends('layouts.app')
+@section('judul', 'Import Surat Masuk - siarsip')
+
+@section('isi')
+<div class="mx-auto" style="max-width: 800px;">
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Import Surat Masuk dari Excel</h4>
+            <h5 class="mb-0">Import Surat Masuk dari Excel</h5>
         </div>
         <div class="card-body">
-
-            @if($errors->any())
-                <div class="alert alert-danger">
-                    @foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach
-                </div>
-            @endif
 
             @if(session('stat'))
                 @php $s = session('stat'); @endphp
                 <div class="alert {{ session('simulasi') ? 'alert-info' : 'alert-success' }}">
-                    <h5>{{ session('simulasi') ? 'Hasil Simulasi (tidak disimpan)' : 'Import Selesai' }}</h5>
+                    <h6 class="fw-bold">{{ session('simulasi') ? 'Hasil Simulasi (tidak disimpan)' : 'Import Selesai' }}</h6>
                     <ul class="mb-0">
-                        <li><strong>{{ $s['masuk'] }}</strong> baris {{ session('simulasi') ? 'siap diimpor' : 'berhasil diimpor' }}</li>
-                        <li>{{ $s['lewat_ada'] }} dilewati (nomor agenda sudah ada di sistem)</li>
+                        <li><strong>{{ number_format($s['masuk']) }}</strong> baris {{ session('simulasi') ? 'siap diimpor' : 'berhasil diimpor' }}</li>
+                        <li>{{ number_format($s['lewat_ada']) }} dilewati (nomor agenda sudah ada di sistem)</li>
                         <li>{{ $s['lewat_rusak'] }} dilewati (tanggal tidak terbaca)</li>
-                        <li>{{ $s['tanpa_kode'] }} tanpa kode klasifikasi</li>
+                        <li>{{ number_format($s['tanpa_kode']) }} tanpa kode klasifikasi</li>
                         <li>{{ $s['kode_asing'] }} kode tidak terdaftar di JRA (dikosongkan)</li>
                     </ul>
                 </div>
@@ -72,5 +61,4 @@
         </div>
     </div>
 </div>
-</body>
-</html>
+@endsection

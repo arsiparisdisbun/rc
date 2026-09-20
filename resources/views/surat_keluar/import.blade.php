@@ -1,34 +1,23 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Import Buku Agenda Surat Keluar - siarsip</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container my-5" style="max-width: 800px;">
+@extends('layouts.app')
+@section('judul', 'Import Buku Agenda Surat Keluar - siarsip')
+
+@section('isi')
+<div class="mx-auto" style="max-width: 800px;">
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Import Buku Agenda Surat Keluar</h4>
+            <h5 class="mb-0">Import Buku Agenda Surat Keluar</h5>
         </div>
         <div class="card-body">
-
-            @if($errors->any())
-                <div class="alert alert-danger">
-                    @foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach
-                </div>
-            @endif
 
             @if(session('stat'))
                 @php $s = session('stat'); @endphp
                 <div class="alert {{ session('simulasi') ? 'alert-info' : 'alert-success' }}">
-                    <h5>{{ session('simulasi') ? 'Hasil Simulasi (tidak disimpan)' : 'Import Selesai' }}</h5>
+                    <h6 class="fw-bold">{{ session('simulasi') ? 'Hasil Simulasi (tidak disimpan)' : 'Import Selesai' }}</h6>
                     <ul class="mb-0">
                         <li><strong>{{ number_format($s['masuk']) }}</strong> baris {{ session('simulasi') ? 'siap diimpor' : 'berhasil diimpor' }}</li>
                         <li>{{ number_format($s['tanpa_verif']) }} dilewati (belum ada tanggal verifikasi)</li>
                         <li>{{ $s['tanpa_nomor'] }} dilewati (tanpa nomor agenda)</li>
-                        <li>{{ $s['sudah_ada'] }} dilewati (sudah ada di sistem)</li>
+                        <li>{{ number_format($s['sudah_ada']) }} dilewati (sudah ada di sistem)</li>
                         <li>{{ $s['unit_asing'] }} dilewati (unit tidak terdaftar)</li>
                         <li>{{ $s['jenis_asing'] }} jenis naskah tidak dikenal (tetap diimpor)</li>
                         <li>{{ $s['kode_asing'] }} kode tidak ada di JRA (dikosongkan)</li>
@@ -76,5 +65,4 @@
         </div>
     </div>
 </div>
-</body>
-</html>
+@endsection

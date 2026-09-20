@@ -1,38 +1,18 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input Surat Masuk - siarsip</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container my-5" style="max-width: 900px;">
+@extends('layouts.app')
+@section('judul', 'Input Surat Masuk - siarsip')
+
+@push('gaya')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+@endpush
+
+@section('isi')
+<div class="mx-auto" style="max-width: 900px;">
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Form Input Surat Masuk</h4>
+            <h5 class="mb-0">Form Input Surat Masuk</h5>
         </div>
         <div class="card-body">
-
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show">
-                    <strong>Berhasil!</strong> {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div class="alert alert-danger">
-                    <strong>Periksa kembali isian berikut:</strong>
-                    <ul class="mb-0 mt-2">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
 
             <form action="{{ route('surat-masuk.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
@@ -114,22 +94,24 @@
                     </select>
                     <small class="text-muted">Surat masuk diagendakan oleh Sekretariat.</small>
                 </div>
+
                 <div class="mb-3">
                     <label class="form-label fw-bold">Kode Klasifikasi</label>
-                    <select name="kode_klasifikasi" class="form-select cari-klasifikasi" >
+                    <select name="kode_klasifikasi" class="form-select cari-klasifikasi">
                         @if(old('kode_klasifikasi'))
                             <option value="{{ old('kode_klasifikasi') }}" selected>{{ old('kode_klasifikasi') }}</option>
                         @endif
                     </select>
-                    <small class="text-muted">Ketik kode atau uraian masalah, lalu pilih dari daftar JRA.</small>
+                    <small class="text-muted">Ketik kode atau uraian masalah, lalu pilih dari daftar JRA. Boleh dikosongkan.</small>
                 </div>
 
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label fw-bold">Tingkat Perkembangan</label>
                         <select name="tingkat_perkembangan" class="form-select">
-                            @foreach(['Asli','Copy','Salinan','Tembusan'] as $t)
-                                <option value="{{ $t }}" @selected(old('tingkat_perkembangan', 'Copy') === $t)>{{ $t }}</option>
+                            <option value="">— Belum ditentukan —</option>
+                            @foreach(['Asli','Salinan'] as $t)
+                                <option value="{{ $t }}" @selected(old('tingkat_perkembangan') === $t)>{{ $t }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -145,14 +127,18 @@
                     <input type="file" name="dokumen" class="form-control" accept="application/pdf">
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 py-2">Simpan Surat Masuk</button>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('surat-masuk.index') }}" class="btn btn-outline-secondary">Batal</a>
+                    <button type="submit" class="btn btn-primary flex-grow-1 py-2">Simpan Surat Masuk</button>
+                </div>
             </form>
         </div>
     </div>
 </div>
+@endsection
 
+@push('skrip')
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(function () {
@@ -172,5 +158,4 @@ $(function () {
     });
 });
 </script>
-</body>
-</html>
+@endpush

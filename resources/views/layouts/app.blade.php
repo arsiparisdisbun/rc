@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('judul', 'siarsip')</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     @stack('gaya')
-    <style>
-        .pagination svg { width: 1rem; height: 1rem; }
-    </style>
+    <link href="{{ asset('css/siarsip.css') }}" rel="stylesheet">
 </head>
 <body class="bg-light">
 
@@ -27,11 +30,6 @@
                         <a class="nav-link" href="{{ route('surat-masuk.index') }}">Surat Masuk</a>
                     </li>
                 @endif
-                @can('kelola-akun')
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('akun.index') }}">Kelola Akun</a>
-                    </li>
-                @endcan
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('surat-keluar.index') }}">Surat Keluar</a>
                 </li>
@@ -41,6 +39,22 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('berkas.index') }}">Berkas</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('pemindahan.index') }}">Pemindahan</a>
+                </li>
+                @if(auth()->user()->lihatSemuaUnit())
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('penyusutan.index') }}">Penyusutan</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('jejak.index') }}">Riwayat</a>
+                    </li>
+                @endif
+                @can('kelola-akun')
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('akun.index') }}">Kelola Akun</a>
+                    </li>
+                @endcan
             </ul>
 
             <ul class="navbar-nav">
@@ -77,12 +91,16 @@
 
 <div class="container-fluid px-4 my-4">
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+        </div>
     @endif
 
     @if($errors->any())
-        <div class="alert alert-danger">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
             @foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
@@ -90,6 +108,15 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Tinggi navbar diukur otomatis agar header tabel yang melekat berhenti tepat di bawahnya
+    function aturTinggiNavbar() {
+        const nav = document.querySelector('.navbar');
+        if (nav) document.documentElement.style.setProperty('--altura-navbar', nav.offsetHeight + 'px');
+    }
+    window.addEventListener('load', aturTinggiNavbar);
+    window.addEventListener('resize', aturTinggiNavbar);
+</script>
 @stack('skrip')
 </body>
 </html>

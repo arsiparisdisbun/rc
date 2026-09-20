@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
+
 class SuratMasukController extends Controller
 {
     
@@ -220,5 +221,87 @@ class SuratMasukController extends Controller
         $suratMasuk->load(['klasifikasi', 'unit']);
         return view('surat_masuk.show', ['arsip' => $suratMasuk]);
     }
-        
+ 
+        public function cetak(Request $request)
+    {
+        $acuan = $request->input('acuan') === 'surat' ? 'tanggal_surat' : 'tanggal_penerimaan';
+
+        $arsip = Arsip::with(['klasifikasi', 'unit'])
+            ->where('jenis', 'masuk')
+            ->when($request->filled('q'), function ($query) use ($request) {
+                $q = $request->q;
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('nomor_surat', 'like', "%{$q}%")
+                        ->orWhere('isi_ringkas', 'like', "%{$q}%")
+                        ->orWhere('dari', 'like', "%{$q}%")
+                        ->orWhere('kode_klasifikasi', 'like', "%{$q}%");
+                });
+            })
+            ->when($request->filled('tahun') && $request->tahun !== 'semua',
+                   fn ($q) => $q->whereYear($acuan, $request->tahun))
+            ->when($request->filled('bulan'), fn ($q) => $q->whereMonth($acuan, $request->bulan))
+            ->when($request->input('dok') === 'ada', fn ($q) => $q->whereNotNull('dokumen_path'))
+            ->when($request->input('dok') === 'kosong', fn ($q) => $q->whereNull('dokumen_path'))
+            ->orderBy('tahun')->orderBy('no_urut')
+            ->get();
+
+        $namaBulan = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+
+        // Keterangan periode untuk kepala dokumen
+        $periode = collect([
+            $request->filled('bulan') ? ($namaBulan[(int) $request->bulan] ?? null) : null,
+            $request->filled('tahun') && $request->tahun !== 'semua' ? 'Tahun ' . $request->tahun : null,
+        ])->filter()->join(' ');
+
+        return view('surat_masuk.cetak', compact('arsip', 'periode'));
+    }
+        use \App\Traits\EksporExcel;
+
+    public function eksporExcel(Request $request)
+    {
+        $acuan = $request->input('acuan') === 'surat' ? 'tanggal_surat' : 'tanggal_penerimaan';
+
+        $arsip = Arsip::with('klasifikasi')
+            ->where('jenis', 'masuk')
+            ->when($request->filled('q'), function ($query) use ($request) {
+                $q = $request->q;
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('nomor_surat', 'like', "%{$q}%")
+                        ->orWhere('isi_ringkas', 'like', "%{$q}%")
+                        ->orWhere('dari', 'like', "%{$q}%")
+                        ->orWhere('kode_klasifikasi', 'like', "%{$q}%");
+                });
+            })
+            ->when($request->filled('tahun') && $request->tahun !== 'semua',
+                   fn ($q) => $q->whereYear($acuan, $request->tahun))
+            ->when($request->filled('bulan'), fn ($q) => $q->whereMonth($acuan, $request->bulan))
+            ->when($request->input('dok') === 'ada', fn ($q) => $q->whereNotNull('dokumen_path'))
+            ->when($request->input('dok') === 'kosong', fn ($q) => $q->whereNull('dokumen_path'))
+            ->orderBy('tahun')->orderBy('no_urut')
+            ->get();
+
+        $kolom = ['No Urut', 'Tahun', 'No TNDE', 'Tgl Terima', 'Tgl Surat', 'Nomor Surat',
+                  'Sifat', 'Lampiran', 'Isi Ringkas', 'Dari', 'Kepada', 'Tingkat Perkembangan',
+                  'Kode Klasifikasi', 'Uraian Klasifikasi', 'Status Retensi', 'Ada Dokumen'];
+
+        $baris = $arsip->map(fn ($a) => [
+            $a->no_urut, $a->tahun, $a->no_tnde,
+            $a->tanggal_penerimaan?->format('d-m-Y'),
+            $a->tanggal_surat?->format('d-m-Y'),
+            $a->nomor_surat, $a->sifat, $a->lampiran, $a->isi_ringkas,
+            $a->dari, $a->kepada, $a->tingkat_perkembangan,
+            $a->kode_klasifikasi, $a->klasifikasi?->uraian,
+            $a->status_retensi, $a->dokumen_path ? 'Ya' : 'Tidak',
+        ]);
+
+        return $this->unduhExcel(
+            'Surat Masuk', $kolom, $baris,
+            'Surat_Masuk_' . now()->format('Y-m-d_His') . '.xlsx',
+            ['I' => 45, 'N' => 35]
+        );
+    }
 }

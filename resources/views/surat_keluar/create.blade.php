@@ -1,29 +1,18 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input Surat Keluar - siarsip</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container my-5" style="max-width: 900px;">
+@extends('layouts.app')
+@section('judul', 'Input Surat Keluar - siarsip')
+
+@push('gaya')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+@endpush
+
+@section('isi')
+<div class="mx-auto" style="max-width: 900px;">
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Form Input Surat Keluar</h4>
+            <h5 class="mb-0">Form Input Surat Keluar</h5>
         </div>
         <div class="card-body">
-
-            @if($errors->any())
-                <div class="alert alert-danger">
-                    <strong>Periksa kembali isian berikut:</strong>
-                    <ul class="mb-0 mt-2">
-                        @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
-                    </ul>
-                </div>
-            @endif
 
             <form action="{{ route('surat-keluar.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
@@ -166,9 +155,10 @@
         </div>
     </div>
 </div>
+@endsection
 
+@push('skrip')
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(function () {
@@ -204,5 +194,4 @@ $(function () {
     $('#unit, #tgl_surat').on('change', usulkanNomor);
 });
 </script>
-</body>
-</html>
+@endpush
