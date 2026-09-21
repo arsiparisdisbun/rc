@@ -16,6 +16,8 @@ use App\Http\Controllers\PemindahanController;
 use App\Http\Controllers\PenyusutanController;
 use App\Http\Controllers\JejakAuditController;
 use App\Http\Controllers\SaranKlasifikasiController;
+use App\Http\Controllers\PegawaiController;
+use App\Http\Controllers\KeuanganController;
 
 // ===== Tanpa perlu masuk =====
 Route::get('/masuk', [AuthController::class, 'form'])->name('login')->middleware('guest');
@@ -119,6 +121,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/berkas/{berka}/item/{item}/edit', [ItemBerkasController::class, 'edit'])->name('item-berkas.edit');
     Route::put('/berkas/{berka}/item/{item}', [ItemBerkasController::class, 'update'])->name('item-berkas.update');
     Route::delete('/berkas/{berka}/item/{item}', [ItemBerkasController::class, 'destroy'])->name('item-berkas.destroy');
+
+    // ---------- KEPEGAWAIAN ----------
+    Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
+    Route::get('/pegawai/tambah', [PegawaiController::class, 'create'])->name('pegawai.create');
+    Route::post('/pegawai/simpan', [PegawaiController::class, 'store'])->name('pegawai.store');
+    Route::get('/pegawai/{pegawai}', [PegawaiController::class, 'show'])->name('pegawai.show');
+    Route::get('/pegawai/{pegawai}/edit', [PegawaiController::class, 'edit'])->name('pegawai.edit');
+    Route::put('/pegawai/{pegawai}', [PegawaiController::class, 'update'])->name('pegawai.update');
+    Route::delete('/pegawai/{pegawai}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy');
+
+    // ---------- KEUANGAN ----------
+    Route::get('/keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
 
     // ---------- PEMINDAHAN ARSIP INAKTIF ----------
     Route::get('/pemindahan', [PemindahanController::class, 'index'])->name('pemindahan.index');

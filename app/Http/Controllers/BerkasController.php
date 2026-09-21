@@ -7,6 +7,7 @@ use App\Models\Boks;
 use App\Models\UnitPengolah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Pegawai;
 
 class BerkasController extends Controller
 {
@@ -68,7 +69,10 @@ class BerkasController extends Controller
 
     public function create()
     {
-        return view('berkas.create', ['daftarUnit' => $this->unitTersedia()]);
+        return view('berkas.create', [
+            'daftarUnit'    => $this->unitTersedia(),
+            'daftarPegawai' => Pegawai::orderBy('nama')->get(),
+        ]);
     }
 
     public function store(Request $request)
@@ -78,6 +82,9 @@ class BerkasController extends Controller
 
         if ($data['unit_pengolah'] !== '121.1') {
             $data['sub_bagian'] = null;
+            $data['pegawai_id'] = null;
+        } elseif (($data['sub_bagian'] ?? null) !== 'Umum dan Kepegawaian') {
+            $data['pegawai_id'] = null;
         }
 
         $data['status'] = 'draf';
@@ -96,10 +103,11 @@ class BerkasController extends Controller
         $this->pastikanBolehUbah($berka);
 
         return view('berkas.edit', [
-            'berkas'     => $berka,
-            'daftarUnit' => $this->unitTersedia(),
-            'daftarBoks' => Boks::where('unit_pengolah', $berka->unit_pengolah)
+            'berkas'        => $berka,
+            'daftarUnit'    => $this->unitTersedia(),
+            'daftarBoks'    => Boks::where('unit_pengolah', $berka->unit_pengolah)
                                 ->orderBy('jenis')->orderBy('nomor')->get(),
+            'daftarPegawai' => Pegawai::orderBy('nama')->get(),
         ]);
     }
 
@@ -119,6 +127,9 @@ class BerkasController extends Controller
 
         if ($berka->unit_pengolah !== '121.1') {
             $data['sub_bagian'] = null;
+            $data['pegawai_id'] = null;
+        } elseif (($data['sub_bagian'] ?? null) !== 'Umum dan Kepegawaian') {
+            $data['pegawai_id'] = null;
         }
 
         $berka->update($data);
@@ -329,6 +340,8 @@ class BerkasController extends Controller
             'jumlah_fisik'     => ['nullable', 'integer', 'min:1'],
             'satuan'           => ['required', 'in:Berkas,Lembar,Sampul'],
             'skkad'            => ['required', 'in:Biasa/Terbuka,Terbatas,Rahasia,Sangat Rahasia'],
+            'pegawai_id'       => ['nullable', 'exists:pegawai,id'],
+            'kategori_keuangan' => ['nullable', 'in:' . implode(',', Berkas::KATEGORI_KEUANGAN)],
             'keterangan'       => ['nullable', 'string'],
         ];
     }

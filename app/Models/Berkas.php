@@ -18,7 +18,7 @@ class Berkas extends Model
         'boks_id', 'lokasi_simpan',
         'status', 'diajukan_pada', 'diverifikasi_pada', 'diverifikasi_oleh',
         'catatan_verifikasi', 'dipindahkan_pada', 'keterangan','pemindahan_id',
-        'penyusutan_id', 'disusutkan_pada',
+        'penyusutan_id', 'disusutkan_pada', 'pegawai_id', 'kategori_keuangan',
     ];
 
     protected $casts = [
@@ -29,6 +29,7 @@ class Berkas extends Model
     ];
 
     public const SUB_BAGIAN = ['Umum dan Kepegawaian', 'Sungram', 'Keuangan'];
+    public const KATEGORI_KEUANGAN = ['SPJ Ganti Uang', 'Belanja LS', 'Akuntansi', 'PAD'];
 
     // ---------- Relasi ----------
 
@@ -55,6 +56,11 @@ class Berkas extends Model
     public function item()
     {
         return $this->hasMany(ItemBerkas::class, 'berkas_id')->orderBy('nomor_item');
+    }
+
+    public function pegawai()
+    {
+        return $this->belongsTo(Pegawai::class, 'pegawai_id');
     }
 
     // ---------- Penomoran ----------

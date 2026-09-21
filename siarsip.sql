@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 20, 2026 at 08:50 AM
+-- Generation Time: Sep 21, 2026 at 04:35 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -66,6 +66,8 @@ CREATE TABLE `berkas` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `unit_pengolah` varchar(20) NOT NULL,
   `sub_bagian` varchar(50) DEFAULT NULL,
+  `pegawai_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `kategori_keuangan` varchar(30) DEFAULT NULL,
   `tahun` smallint(5) UNSIGNED NOT NULL,
   `no_berkas` int(10) UNSIGNED NOT NULL,
   `kode_klasifikasi` varchar(50) DEFAULT NULL,
@@ -2786,7 +2788,10 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (17, '2026_09_16_095345_create_item_berkas_table', 11),
 (18, '2026_09_17_024558_create_pemindahan_table', 12),
 (19, '2026_09_17_033941_create_penyusutan_table', 13),
-(20, '2026_09_17_035959_create_jejak_audit_table', 14);
+(20, '2026_09_17_035959_create_jejak_audit_table', 14),
+(23, '2026_09_21_003140_create_pegawai_table', 15),
+(24, '2026_09_21_003202_tambah_pegawai_id_ke_berkas', 15),
+(25, '2026_09_21_013333_tambah_kategori_keuangan_ke_berkas', 16);
 
 -- --------------------------------------------------------
 
@@ -2798,6 +2803,25 @@ CREATE TABLE `password_reset_tokens` (
   `email` varchar(255) NOT NULL,
   `token` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pegawai`
+--
+
+CREATE TABLE `pegawai` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `nip` varchar(30) DEFAULT NULL,
+  `nama` varchar(255) NOT NULL,
+  `jabatan` varchar(255) DEFAULT NULL,
+  `unit_pengolah` varchar(20) DEFAULT NULL,
+  `status` enum('aktif','pensiun','pindah','berhenti','meninggal') NOT NULL DEFAULT 'aktif',
+  `tanggal_status` date DEFAULT NULL,
+  `keterangan` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -2883,7 +2907,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('kFUFGwqDjS6jZhxs1DehwBrNHyMB86MK9zNUr28t', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiTVBUSXpHTHlpbTlKaWk1dWlzOXBoS1U5Y0twR3lITVo4akZZZVU4YSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjc6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMC9tYXN1ayI7czo1OiJyb3V0ZSI7czo1OiJsb2dpbiI7fX0=', 1789884687);
+('nCcHLjzuGbcvzJRRZbgW5ozJAulXPX3v4iGRtuaL', 3, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiRGJxNGFrNDIzNFc2Y0JXQWRvcDhTdFFSM3ZVS0dkbDJKVlNENFJkQyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzA6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMC9rZXVhbmdhbiI7czo1OiJyb3V0ZSI7czoxNDoia2V1YW5nYW4uaW5kZXgiO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aTozO30=', 1789957887);
 
 -- --------------------------------------------------------
 
@@ -2939,7 +2963,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `name`, `email`, `email_verified_at`, `password`, `peran`, `unit_pengolah`, `aktif`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'superadmin', 'Administrator Sistem', NULL, NULL, '$2y$12$pjaZOfKZZ8yEvLvJ4TBxQ.H5kv.QEH24.2GHjVkSHFlaL/pZFh6jW', 'superadmin', NULL, 1, '8ubIuyLNHPCx41KR3b5AtcvHG9GyXiowGuiCZGoaZOMPnHanPqBWFyVoD32N', '2026-09-16 01:20:18', '2026-09-16 01:20:18'),
+(1, 'superadmin', 'Administrator Sistem', NULL, NULL, '$2y$12$pjaZOfKZZ8yEvLvJ4TBxQ.H5kv.QEH24.2GHjVkSHFlaL/pZFh6jW', 'superadmin', NULL, 1, 'dINjqa705u1pLqgP6vVlwp1PmWDC9diXc8X2eIVOATBvlqTqmWgTpIadn46J', '2026-09-16 01:20:18', '2026-09-16 01:20:18'),
 (2, 'kearsipan', 'Unit Kearsipan', NULL, NULL, '$2y$12$0f3rXIUsWm1.caG/9BpTpOSuk9X/ER1/5pAjnGKM3fisFH8RCVe5O', 'kearsipan', NULL, 1, NULL, '2026-09-16 01:20:19', '2026-09-16 01:20:19'),
 (3, 'sekretariat', 'Operator Sekretariat', NULL, NULL, '$2y$12$nIH7su4VXgld5zjhfAMcnel7UHFD1pNvjH8zXc8eNshXaGd.5yXEu', 'operator', '121.1', 1, NULL, '2026-09-16 01:20:19', '2026-09-16 01:20:19'),
 (4, 'semusim', 'Operator Tanaman Semusim', NULL, NULL, '$2y$12$0bXfnn5UQ9NMWDHqVECcxujZH/9jxyD0p69Lap073dW2rt5SJM/MG', 'operator', '121.2', 1, NULL, '2026-09-16 01:20:19', '2026-09-16 01:20:19'),
@@ -2972,7 +2996,8 @@ ALTER TABLE `berkas`
   ADD KEY `berkas_diverifikasi_oleh_foreign` (`diverifikasi_oleh`),
   ADD KEY `berkas_kode_klasifikasi_foreign` (`kode_klasifikasi`),
   ADD KEY `berkas_pemindahan_id_foreign` (`pemindahan_id`),
-  ADD KEY `berkas_penyusutan_id_foreign` (`penyusutan_id`);
+  ADD KEY `berkas_penyusutan_id_foreign` (`penyusutan_id`),
+  ADD KEY `berkas_pegawai_id_foreign` (`pegawai_id`);
 
 --
 -- Indexes for table `boks`
@@ -3057,6 +3082,14 @@ ALTER TABLE `migrations`
 --
 ALTER TABLE `password_reset_tokens`
   ADD PRIMARY KEY (`email`);
+
+--
+-- Indexes for table `pegawai`
+--
+ALTER TABLE `pegawai`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `pegawai_nip_unique` (`nip`),
+  ADD KEY `pegawai_unit_pengolah_foreign` (`unit_pengolah`);
 
 --
 -- Indexes for table `pemindahan`
@@ -3153,7 +3186,13 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+
+--
+-- AUTO_INCREMENT for table `pegawai`
+--
+ALTER TABLE `pegawai`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `pemindahan`
@@ -3192,6 +3231,7 @@ ALTER TABLE `berkas`
   ADD CONSTRAINT `berkas_boks_id_foreign` FOREIGN KEY (`boks_id`) REFERENCES `boks` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `berkas_diverifikasi_oleh_foreign` FOREIGN KEY (`diverifikasi_oleh`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `berkas_kode_klasifikasi_foreign` FOREIGN KEY (`kode_klasifikasi`) REFERENCES `klasifikasi` (`kode_klasifikasi`) ON DELETE SET NULL,
+  ADD CONSTRAINT `berkas_pegawai_id_foreign` FOREIGN KEY (`pegawai_id`) REFERENCES `pegawai` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `berkas_pemindahan_id_foreign` FOREIGN KEY (`pemindahan_id`) REFERENCES `pemindahan` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `berkas_penyusutan_id_foreign` FOREIGN KEY (`penyusutan_id`) REFERENCES `penyusutan` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `berkas_unit_pengolah_foreign` FOREIGN KEY (`unit_pengolah`) REFERENCES `unit_pengolah` (`kode`);
@@ -3215,6 +3255,12 @@ ALTER TABLE `item_berkas`
 --
 ALTER TABLE `jejak_audit`
   ADD CONSTRAINT `jejak_audit_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `pegawai`
+--
+ALTER TABLE `pegawai`
+  ADD CONSTRAINT `pegawai_unit_pengolah_foreign` FOREIGN KEY (`unit_pengolah`) REFERENCES `unit_pengolah` (`kode`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `pemindahan`

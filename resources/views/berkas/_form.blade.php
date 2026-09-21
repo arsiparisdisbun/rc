@@ -27,13 +27,26 @@
 
 <div class="mb-3" id="kotak-subbagian">
     <label class="form-label fw-bold">Sub Bagian</label>
-    <select name="sub_bagian" class="form-select">
+    <select name="sub_bagian" id="sub-bagian" class="form-select">
         <option value="">— Tidak ditentukan —</option>
         @foreach(\App\Models\Berkas::SUB_BAGIAN as $sb)
             <option value="{{ $sb }}" @selected(old('sub_bagian', $berkas->sub_bagian ?? '') === $sb)>{{ $sb }}</option>
         @endforeach
     </select>
     <small class="text-muted">Hanya untuk Sekretariat.</small>
+</div>
+
+<div class="mb-3" id="kotak-pegawai">
+    <label class="form-label fw-bold">Pegawai</label>
+    <select name="pegawai_id" class="form-select pilih-pegawai">
+        <option value="">— Bukan berkas perorangan —</option>
+        @foreach($daftarPegawai ?? [] as $p)
+            <option value="{{ $p->id }}" @selected((string) old('pegawai_id', $berkas->pegawai_id ?? '') === (string) $p->id)>
+                {{ $p->nama }}{{ $p->nip ? ' — NIP ' . $p->nip : '' }}@if($p->status !== 'aktif') ({{ $p->label_status }})@endif
+            </option>
+        @endforeach
+    </select>
+    <small class="text-muted">Isi bila berkas ini adalah berkas kepegawaian milik satu pegawai.</small>
 </div>
 
 <div class="mb-3">
@@ -81,13 +94,25 @@
     </div>
 </div>
 
-<div class="mb-3">
-    <label class="form-label fw-bold">Klasifikasi Keamanan &amp; Akses (SKKAD) <span class="text-danger">*</span></label>
-    <select name="skkad" class="form-select" required>
-        @foreach(['Biasa/Terbuka','Terbatas','Rahasia','Sangat Rahasia'] as $s)
-            <option value="{{ $s }}" @selected(old('skkad', $berkas->skkad ?? 'Biasa/Terbuka') === $s)>{{ $s }}</option>
-        @endforeach
-    </select>
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label class="form-label fw-bold">Klasifikasi Keamanan &amp; Akses (SKKAD) <span class="text-danger">*</span></label>
+        <select name="skkad" class="form-select" required>
+            @foreach(['Biasa/Terbuka','Terbatas','Rahasia','Sangat Rahasia'] as $s)
+                <option value="{{ $s }}" @selected(old('skkad', $berkas->skkad ?? 'Biasa/Terbuka') === $s)>{{ $s }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label fw-bold">Kategori Keuangan</label>
+        <select name="kategori_keuangan" class="form-select">
+            <option value="">— Bukan berkas keuangan —</option>
+            @foreach(\App\Models\Berkas::KATEGORI_KEUANGAN as $kat)
+                <option value="{{ $kat }}" @selected(old('kategori_keuangan', $berkas->kategori_keuangan ?? '') === $kat)>{{ $kat }}</option>
+            @endforeach
+        </select>
+        <small class="text-muted">Isi bila berkas ini SPJ, Belanja LS, Akuntansi, atau PAD — tersedia untuk semua unit.</small>
+    </div>
 </div>
 
 @isset($berkas)
@@ -138,17 +163,32 @@ $(function () {
         }
     });
 
-    // Sub bagian hanya berlaku untuk Sekretariat
+    $('.pilih-pegawai').select2({
+        theme: 'bootstrap-5', width: '100%',
+        placeholder: 'Cari nama pegawai...',
+    });
+
+    // Sub bagian dan kotak Pegawai hanya berlaku untuk Sekretariat.
+    // Kategori Keuangan sengaja tidak diatur di sini — tersedia untuk semua unit.
     const unit = document.getElementById('unit');
     const kotakSub = document.getElementById('kotak-subbagian');
+    const subBagian = document.getElementById('sub-bagian');
+    const kotakPegawai = document.getElementById('kotak-pegawai');
     const unitTetap = @json($berkas->unit_pengolah ?? null);
 
     function aturSub() {
         const nilai = unit ? unit.value : unitTetap;
         kotakSub.style.display = nilai === '121.1' ? '' : 'none';
+        aturPegawai();
+    }
+
+    function aturPegawai() {
+        const subTampil = kotakSub.style.display !== 'none';
+        kotakPegawai.style.display = (subTampil && subBagian.value === 'Umum dan Kepegawaian') ? '' : 'none';
     }
 
     if (unit) unit.addEventListener('change', aturSub);
+    subBagian.addEventListener('change', aturPegawai);
     aturSub();
 });
 </script>

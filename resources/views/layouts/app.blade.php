@@ -34,10 +34,18 @@
                     <a class="nav-link" href="{{ route('surat-keluar.index') }}">Surat Keluar</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('boks.index') }}">Boks</a>
+                    <a class="nav-link" href="{{ route('berkas.index') }}">Berkas</a>
+                </li>
+                @if(auth()->user()->lihatSemuaUnit() || auth()->user()->unit_pengolah === '121.1')
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('pegawai.index') }}">Kepegawaian</a>
+                    </li>
+                @endif
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('keuangan.index') }}">Keuangan</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('berkas.index') }}">Berkas</a>
+                    <a class="nav-link" href="{{ route('boks.index') }}">Boks</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('pemindahan.index') }}">Pemindahan</a>
