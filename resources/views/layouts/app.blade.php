@@ -15,6 +15,12 @@
 </head>
 <body class="bg-light">
 
+@php
+    $user = auth()->user();
+    $superadmin = $user->can('kelola-master');
+    $kearsipan  = $user->lihatSemuaUnit();
+@endphp
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid px-4">
         <a class="navbar-brand fw-bold" href="{{ route('beranda') }}">siarsip</a>
@@ -25,7 +31,7 @@
 
         <div class="collapse navbar-collapse" id="menu">
             <ul class="navbar-nav me-auto">
-                @if(auth()->user()->bolehSuratMasuk())
+                @if($user->bolehSuratMasuk())
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('surat-masuk.index') }}">Surat Masuk</a>
                     </li>
@@ -36,7 +42,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('berkas.index') }}">Berkas</a>
                 </li>
-                @if(auth()->user()->lihatSemuaUnit() || auth()->user()->unit_pengolah === '121.1')
+                @if($kearsipan || $user->unit_pengolah === '121.1')
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('pegawai.index') }}">Kepegawaian</a>
                     </li>
@@ -50,33 +56,53 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('pemindahan.index') }}">Pemindahan</a>
                 </li>
-                @if(auth()->user()->lihatSemuaUnit())
+                @if($kearsipan)
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('penyusutan.index') }}">Penyusutan</a>
                     </li>
+                @endif
+
+                {{-- Master: superadmin melihat semuanya, kearsipan cuma Riwayat --}}
+                @if($superadmin)
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Master</a>
+                        <ul class="dropdown-menu">
+                            <li><h6 class="dropdown-header">Data Acuan</h6></li>
+                            <li><a class="dropdown-item" href="{{ route('klasifikasi.index') }}">Jadwal Retensi Arsip</a></li>
+                            <li><a class="dropdown-item" href="{{ route('unit-pengolah.index') }}">Unit Pengolah</a></li>
+                            <li><a class="dropdown-item" href="{{ route('jenis-naskah.index') }}">Jenis Naskah</a></li>
+
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Daftar Pilihan</h6></li>
+                            <li><a class="dropdown-item" href="{{ route('pengaturan.index', 'sub_bagian') }}">Sub Bagian</a></li>
+                            <li><a class="dropdown-item" href="{{ route('pengaturan.index', 'kategori_keuangan') }}">Kategori Keuangan</a></li>
+                            <li><a class="dropdown-item" href="{{ route('pengaturan.index', 'satuan') }}">Satuan Berkas</a></li>
+                            <li><a class="dropdown-item" href="{{ route('pengaturan.index', 'skkad') }}">SKKAD</a></li>
+
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ route('jejak.index') }}">Riwayat Perubahan</a></li>
+                            <li><a class="dropdown-item" href="{{ route('akun.index') }}">Kelola Akun</a></li>
+                        </ul>
+                    </li>
+                @elseif($kearsipan)
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('jejak.index') }}">Riwayat</a>
                     </li>
                 @endif
-                @can('kelola-akun')
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('akun.index') }}">Kelola Akun</a>
-                    </li>
-                @endcan
             </ul>
 
             <ul class="navbar-nav">
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                        {{ auth()->user()->name }}
+                        {{ $user->name }}
                         <span class="badge bg-secondary ms-1">
-                            {{ auth()->user()->unit_pengolah ?? ucfirst(auth()->user()->peran) }}
+                            {{ $user->unit_pengolah ?? ucfirst($user->peran) }}
                         </span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
                             <span class="dropdown-item-text small text-muted">
-                                {{ auth()->user()->unit?->nama ?? match(auth()->user()->peran) {
+                                {{ $user->unit?->nama ?? match($user->peran) {
                                     'superadmin' => 'Administrator Sistem',
                                     'kearsipan'  => 'Unit Kearsipan',
                                     default      => '-',

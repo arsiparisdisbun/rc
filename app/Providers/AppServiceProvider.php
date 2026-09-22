@@ -23,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::define('akses-surat-masuk', fn ($user) => $user->bolehSuratMasuk());
         Gate::define('kelola-akun', fn ($user) => $user->superadmin());
+        Gate::define('kelola-master', fn ($user) => $user->peran === 'superadmin');
         Paginator::useBootstrapFive();
     }
 }

@@ -8,7 +8,7 @@
     </div>
 
     <div class="d-flex flex-wrap gap-2 mb-3">
-        @foreach(\App\Models\Berkas::KATEGORI_KEUANGAN as $kat)
+        @foreach(\App\Models\Berkas::kategoriKeuangan() as $kat)
             <a href="{{ route('keuangan.index', array_merge(request()->except('page'), ['kategori' => $kat])) }}"
                class="btn btn-sm {{ request('kategori') === $kat ? 'btn-primary' : 'btn-outline-secondary' }}">
                 {{ $kat }} <span class="badge bg-light text-dark ms-1">{{ $ringkasan[$kat] ?? 0 }}</span>

@@ -29,7 +29,7 @@
     <label class="form-label fw-bold">Sub Bagian</label>
     <select name="sub_bagian" id="sub-bagian" class="form-select">
         <option value="">— Tidak ditentukan —</option>
-        @foreach(\App\Models\Berkas::SUB_BAGIAN as $sb)
+        @foreach(\App\Models\Berkas::subBagian() as $sb)
             <option value="{{ $sb }}" @selected(old('sub_bagian', $berkas->sub_bagian ?? '') === $sb)>{{ $sb }}</option>
         @endforeach
     </select>
@@ -87,7 +87,7 @@
     <div class="col-md-3 mb-3">
         <label class="form-label fw-bold">Satuan <span class="text-danger">*</span></label>
         <select name="satuan" class="form-select" required>
-            @foreach(['Berkas','Lembar','Sampul'] as $s)
+            @foreach(\App\Models\Berkas::satuan() as $s)
                 <option value="{{ $s }}" @selected(old('satuan', $berkas->satuan ?? 'Berkas') === $s)>{{ $s }}</option>
             @endforeach
         </select>
@@ -98,7 +98,7 @@
     <div class="col-md-6 mb-3">
         <label class="form-label fw-bold">Klasifikasi Keamanan &amp; Akses (SKKAD) <span class="text-danger">*</span></label>
         <select name="skkad" class="form-select" required>
-            @foreach(['Biasa/Terbuka','Terbatas','Rahasia','Sangat Rahasia'] as $s)
+            @foreach(\App\Models\Berkas::skkad() as $s)
                 <option value="{{ $s }}" @selected(old('skkad', $berkas->skkad ?? 'Biasa/Terbuka') === $s)>{{ $s }}</option>
             @endforeach
         </select>
@@ -107,7 +107,7 @@
         <label class="form-label fw-bold">Kategori Keuangan</label>
         <select name="kategori_keuangan" class="form-select">
             <option value="">— Bukan berkas keuangan —</option>
-            @foreach(\App\Models\Berkas::KATEGORI_KEUANGAN as $kat)
+            @foreach(\App\Models\Berkas::kategoriKeuangan() as $kat)
                 <option value="{{ $kat }}" @selected(old('kategori_keuangan', $berkas->kategori_keuangan ?? '') === $kat)>{{ $kat }}</option>
             @endforeach
         </select>

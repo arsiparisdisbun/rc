@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 21, 2026 at 04:35 AM
+-- Generation Time: Sep 22, 2026 at 03:20 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -2791,7 +2791,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (20, '2026_09_17_035959_create_jejak_audit_table', 14),
 (23, '2026_09_21_003140_create_pegawai_table', 15),
 (24, '2026_09_21_003202_tambah_pegawai_id_ke_berkas', 15),
-(25, '2026_09_21_013333_tambah_kategori_keuangan_ke_berkas', 16);
+(25, '2026_09_21_013333_tambah_kategori_keuangan_ke_berkas', 16),
+(26, '2026_09_22_115610_create_pengaturan_table', 17);
 
 -- --------------------------------------------------------
 
@@ -2856,6 +2857,41 @@ CREATE TABLE `pemindahan` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `pengaturan`
+--
+
+CREATE TABLE `pengaturan` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `kelompok` varchar(30) NOT NULL,
+  `nilai` varchar(100) NOT NULL,
+  `urutan` smallint(5) UNSIGNED NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `pengaturan`
+--
+
+INSERT INTO `pengaturan` (`id`, `kelompok`, `nilai`, `urutan`, `created_at`, `updated_at`) VALUES
+(1, 'sub_bagian', 'Umum dan Kepegawaian', 0, '2026-09-22 04:58:29', '2026-09-22 04:58:29'),
+(2, 'sub_bagian', 'Sungram', 1, '2026-09-22 04:58:30', '2026-09-22 04:58:30'),
+(3, 'sub_bagian', 'Keuangan', 2, '2026-09-22 04:58:30', '2026-09-22 04:58:30'),
+(4, 'kategori_keuangan', 'SPJ Ganti Uang', 0, '2026-09-22 04:58:30', '2026-09-22 04:58:30'),
+(5, 'kategori_keuangan', 'Belanja LS', 1, '2026-09-22 04:58:30', '2026-09-22 04:58:30'),
+(6, 'kategori_keuangan', 'Akuntansi', 2, '2026-09-22 04:58:30', '2026-09-22 04:58:30'),
+(7, 'kategori_keuangan', 'PAD', 3, '2026-09-22 04:58:30', '2026-09-22 04:58:30'),
+(8, 'satuan', 'Berkas', 0, '2026-09-22 04:58:30', '2026-09-22 04:58:30'),
+(9, 'satuan', 'Lembar', 1, '2026-09-22 04:58:30', '2026-09-22 04:58:30'),
+(10, 'satuan', 'Sampul', 2, '2026-09-22 04:58:30', '2026-09-22 04:58:30'),
+(11, 'skkad', 'Biasa/Terbuka', 0, '2026-09-22 04:58:30', '2026-09-22 04:58:30'),
+(12, 'skkad', 'Terbatas', 1, '2026-09-22 04:58:30', '2026-09-22 04:58:30'),
+(13, 'skkad', 'Rahasia', 2, '2026-09-22 04:58:30', '2026-09-22 04:58:30'),
+(14, 'skkad', 'Sangat Rahasia', 3, '2026-09-22 04:58:30', '2026-09-22 04:58:30');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `penyusutan`
 --
 
@@ -2907,7 +2943,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('nCcHLjzuGbcvzJRRZbgW5ozJAulXPX3v4iGRtuaL', 3, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiRGJxNGFrNDIzNFc2Y0JXQWRvcDhTdFFSM3ZVS0dkbDJKVlNENFJkQyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzA6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMC9rZXVhbmdhbiI7czo1OiJyb3V0ZSI7czoxNDoia2V1YW5nYW4uaW5kZXgiO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aTozO30=', 1789957887);
+('2UKgBtnin28PNfeGjgG7jkfyK5oJq5AMsCMu8uU2', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoid2NyamNzamJ0d1FaZDdscUtjRU5DeXNvUzFURE9iRkhBN0hTQzNSUCI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjY6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMC9ib2tzIjtzOjU6InJvdXRlIjtzOjEwOiJib2tzLmluZGV4Ijt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTt9', 1790083181);
 
 -- --------------------------------------------------------
 
@@ -2963,7 +2999,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `name`, `email`, `email_verified_at`, `password`, `peran`, `unit_pengolah`, `aktif`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'superadmin', 'Administrator Sistem', NULL, NULL, '$2y$12$pjaZOfKZZ8yEvLvJ4TBxQ.H5kv.QEH24.2GHjVkSHFlaL/pZFh6jW', 'superadmin', NULL, 1, 'dINjqa705u1pLqgP6vVlwp1PmWDC9diXc8X2eIVOATBvlqTqmWgTpIadn46J', '2026-09-16 01:20:18', '2026-09-16 01:20:18'),
+(1, 'superadmin', 'Administrator Sistem', NULL, NULL, '$2y$12$pjaZOfKZZ8yEvLvJ4TBxQ.H5kv.QEH24.2GHjVkSHFlaL/pZFh6jW', 'superadmin', NULL, 1, 'jYVZqgnmRkZQ0M8nSa2wKx6fQAzV2SGQRWeq1hgl242Gewy1sTQ0RtPB0P5J', '2026-09-16 01:20:18', '2026-09-16 01:20:18'),
 (2, 'kearsipan', 'Unit Kearsipan', NULL, NULL, '$2y$12$0f3rXIUsWm1.caG/9BpTpOSuk9X/ER1/5pAjnGKM3fisFH8RCVe5O', 'kearsipan', NULL, 1, NULL, '2026-09-16 01:20:19', '2026-09-16 01:20:19'),
 (3, 'sekretariat', 'Operator Sekretariat', NULL, NULL, '$2y$12$nIH7su4VXgld5zjhfAMcnel7UHFD1pNvjH8zXc8eNshXaGd.5yXEu', 'operator', '121.1', 1, NULL, '2026-09-16 01:20:19', '2026-09-16 01:20:19'),
 (4, 'semusim', 'Operator Tanaman Semusim', NULL, NULL, '$2y$12$0bXfnn5UQ9NMWDHqVECcxujZH/9jxyD0p69Lap073dW2rt5SJM/MG', 'operator', '121.2', 1, NULL, '2026-09-16 01:20:19', '2026-09-16 01:20:19'),
@@ -3101,6 +3137,14 @@ ALTER TABLE `pemindahan`
   ADD KEY `pemindahan_unit_pengolah_foreign` (`unit_pengolah`);
 
 --
+-- Indexes for table `pengaturan`
+--
+ALTER TABLE `pengaturan`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `pengaturan_kelompok_nilai_unique` (`kelompok`,`nilai`),
+  ADD KEY `pengaturan_kelompok_index` (`kelompok`);
+
+--
 -- Indexes for table `penyusutan`
 --
 ALTER TABLE `penyusutan`
@@ -3186,7 +3230,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `pegawai`
@@ -3199,6 +3243,12 @@ ALTER TABLE `pegawai`
 --
 ALTER TABLE `pemindahan`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `pengaturan`
+--
+ALTER TABLE `pengaturan`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `penyusutan`

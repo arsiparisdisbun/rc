@@ -331,17 +331,17 @@ class BerkasController extends Controller
     {
         return [
             'unit_pengolah'    => ['required', 'exists:unit_pengolah,kode'],
-            'sub_bagian'       => ['nullable', 'in:' . implode(',', Berkas::SUB_BAGIAN)],
+            'sub_bagian'       => ['nullable', 'in:' . implode(',', Berkas::subBagian())],
             'tahun'            => ['required', 'integer', 'min:1990', 'max:' . (now()->year + 1)],
             'kode_klasifikasi' => ['nullable', 'exists:klasifikasi,kode_klasifikasi'],
             'uraian'           => ['required', 'string'],
             'tahun_mulai'      => ['nullable', 'integer', 'min:1900', 'max:' . (now()->year + 1)],
             'tahun_selesai'    => ['nullable', 'integer', 'min:1900', 'max:' . (now()->year + 1), 'gte:tahun_mulai'],
             'jumlah_fisik'     => ['nullable', 'integer', 'min:1'],
-            'satuan'           => ['required', 'in:Berkas,Lembar,Sampul'],
-            'skkad'            => ['required', 'in:Biasa/Terbuka,Terbatas,Rahasia,Sangat Rahasia'],
+            'satuan'           => ['required', 'in:' . implode(',', Berkas::satuan())],
+            'skkad'            => ['required', 'in:' . implode(',', Berkas::skkad())],
             'pegawai_id'       => ['nullable', 'exists:pegawai,id'],
-            'kategori_keuangan' => ['nullable', 'in:' . implode(',', Berkas::KATEGORI_KEUANGAN)],
+            'kategori_keuangan' => ['nullable', 'in:' . implode(',', Berkas::kategoriKeuangan())],
             'keterangan'       => ['nullable', 'string'],
         ];
     }

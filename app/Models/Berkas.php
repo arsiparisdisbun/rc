@@ -28,8 +28,26 @@ class Berkas extends Model
         'disusutkan_pada' => 'date',
     ];
 
-    public const SUB_BAGIAN = ['Umum dan Kepegawaian', 'Sungram', 'Keuangan'];
-    public const KATEGORI_KEUANGAN = ['SPJ Ganti Uang', 'Belanja LS', 'Akuntansi', 'PAD'];
+    // Daftar pilihan dibaca dari master Pengaturan, bukan ditanam di sini
+    public static function subBagian(): array
+    {
+        return Pengaturan::daftar('sub_bagian');
+    }
+
+    public static function kategoriKeuangan(): array
+    {
+        return Pengaturan::daftar('kategori_keuangan');
+    }
+
+    public static function satuan(): array
+    {
+        return Pengaturan::daftar('satuan');
+    }
+
+    public static function skkad(): array
+    {
+        return Pengaturan::daftar('skkad');
+    }
 
     // ---------- Relasi ----------
 

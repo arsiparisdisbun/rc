@@ -18,6 +18,10 @@ use App\Http\Controllers\JejakAuditController;
 use App\Http\Controllers\SaranKlasifikasiController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\KeuanganController;
+use App\Http\Controllers\PengaturanController;
+use App\Http\Controllers\JenisNaskahController;
+use App\Http\Controllers\UnitPengolahController;
+use App\Http\Controllers\KlasifikasiController;
 
 // ===== Tanpa perlu masuk =====
 Route::get('/masuk', [AuthController::class, 'form'])->name('login')->middleware('guest');
@@ -75,6 +79,37 @@ Route::middleware('auth')->group(function () {
     Route::put('/surat-keluar/{suratKeluar}', [SuratKeluarController::class, 'update'])->name('surat-keluar.update');
     Route::delete('/surat-keluar/{suratKeluar}', [SuratKeluarController::class, 'destroy'])->name('surat-keluar.destroy');
     Route::post('/surat-keluar/{suratKeluar}/dokumen', [SuratKeluarController::class, 'unggahDokumen'])->name('surat-keluar.dokumen');
+
+    // ---------- MASTER (superadmin) ----------
+    // Route bernama tetap harus di atas route {kelompok}, yang menangkap apa pun.
+    Route::middleware('can:kelola-master')->group(function () {
+        Route::get('/master/jenis-naskah', [JenisNaskahController::class, 'index'])->name('jenis-naskah.index');
+        Route::get('/master/jenis-naskah/tambah', [JenisNaskahController::class, 'create'])->name('jenis-naskah.create');
+        Route::post('/master/jenis-naskah', [JenisNaskahController::class, 'store'])->name('jenis-naskah.store');
+        Route::get('/master/jenis-naskah/{jenisNaskah}/edit', [JenisNaskahController::class, 'edit'])->name('jenis-naskah.edit');
+        Route::put('/master/jenis-naskah/{jenisNaskah}', [JenisNaskahController::class, 'update'])->name('jenis-naskah.update');
+        Route::delete('/master/jenis-naskah/{jenisNaskah}', [JenisNaskahController::class, 'destroy'])->name('jenis-naskah.destroy');
+
+        Route::get('/master/unit-pengolah', [UnitPengolahController::class, 'index'])->name('unit-pengolah.index');
+        Route::get('/master/unit-pengolah/tambah', [UnitPengolahController::class, 'create'])->name('unit-pengolah.create');
+        Route::post('/master/unit-pengolah', [UnitPengolahController::class, 'store'])->name('unit-pengolah.store');
+         Route::get('/master/unit-pengolah/{kode}/edit', [UnitPengolahController::class, 'edit'])
+            ->where('kode', '.*')->name('unit-pengolah.edit');
+        Route::put('/master/unit-pengolah/{kode}', [UnitPengolahController::class, 'update'])
+            ->where('kode', '.*')->name('unit-pengolah.update');
+        Route::delete('/master/unit-pengolah/{kode}', [UnitPengolahController::class, 'destroy'])
+            ->where('kode', '.*')->name('unit-pengolah.destroy');
+        Route::get('/master/klasifikasi', [KlasifikasiController::class, 'index'])->name('klasifikasi.index');
+        Route::get('/master/klasifikasi/tambah', [KlasifikasiController::class, 'create'])->name('klasifikasi.create');
+        Route::post('/master/klasifikasi', [KlasifikasiController::class, 'store'])->name('klasifikasi.store');
+        Route::get('/master/klasifikasi/{kode}/edit', [KlasifikasiController::class, 'edit'])
+            ->where('kode', '.*')->name('klasifikasi.edit');
+        Route::put('/master/klasifikasi/{kode}', [KlasifikasiController::class, 'update'])
+            ->where('kode', '.*')->name('klasifikasi.update');
+            Route::get('/master/{kelompok}', [PengaturanController::class, 'index'])->name('pengaturan.index');
+        Route::post('/master/{kelompok}', [PengaturanController::class, 'store'])->name('pengaturan.store');
+        Route::delete('/master/{kelompok}/{pengaturan}', [PengaturanController::class, 'destroy'])->name('pengaturan.destroy');
+    });
 
     // ---------- KELOLA AKUN (superadmin) ----------
     Route::middleware(['auth', 'can:kelola-akun'])->group(function () {
